@@ -1,0 +1,162 @@
+# Get grid size
+$grid_width, $grid_height = 0,0
+until 9 < $grid_width && $grid_width < 21
+    print "Please enter grid width (9 < width < 21):     "
+    $grid_width = gets.chomp.to_i
+
+    if $grid_width < 10
+        puts "Width must be 10 or higher."
+    elsif $grid_width > 20
+        puts "Width must be 20 or lower."
+    end
+end
+
+until 9 < $grid_height && $grid_height < 21
+    print "Please enter grid height (10 < height < 20):  "
+    $grid_height = gets.chomp.to_i
+
+    if $grid_height < 10
+        puts "Height must be 10 or higher."
+    elsif $grid_height > 20
+        puts "Height must be 20 or lower."
+    end
+end
+
+if $grid_width > $grid_height
+    max_length = $grid_width
+else
+    max_length = $grid_height
+end
+
+real_grid = []
+make_grid = []
+
+for x in 0...$grid_height do
+    real_grid.push([])
+    make_grid.push([])
+    $grid_width.times {real_grid[x].push("X"); make_grid[x].push("")}
+end
+
+def print_grid(real_grid)
+
+    print "\n   "
+
+    (1..$grid_width).each { |x| print (x.to_s.length < 2) ? "#{x} " : "#{x.to_s[1]} "}
+
+    print "\n"
+
+    real_grid.each_with_index do |x,y|
+
+        num = (y+1).to_s.length < 2 ? "#{y+1}  " : "#{y+1} "
+        print num
+
+        real_grid[y].each { |z| print "#{z} "}
+        print "\n"
+
+    end
+
+    print "\n"
+
+end
+
+def insert_word(max_length)
+    word = ""
+    coordinates = []
+    ori_check, cord_check, length_check = false, false, false
+
+    until word.length <= max_length && word != ""
+        print "Enter word: "
+        word = gets.chomp.upcase
+
+        if word == ""
+            puts "Entry blank. Please enter a word with at least 2 characters."
+        elsif word.length > max_length
+            puts "Entry too long. Please enter a word with #{max_length} letters or less."
+        end
+    end
+
+    until ori_check
+        print "Horizontal or Vertical? [H/V/D]: "
+        orientation = gets.chomp
+        orientation.upcase!
+
+        if orientation == ""
+            puts "Orientation is blank."
+        elsif orientation != "H" && orientation != "V" && orientation != "D"
+            puts "Invalid entry."
+        else 
+            if orientation == "H"
+                word_fit = $grid_width - word.length
+            elsif orientation == "V"
+                word_fit = $grid_height - word.length
+            else
+                word_fit = 1
+            end
+                
+            if word_fit < 0
+                puts "Word won't fit this way."
+            else
+                ori_check = true
+            end
+        end
+    end
+
+
+    until cord_check && length_check
+        print "Enter coordinates (X, Y): "
+        coordinates = gets.chomp
+        coordinates = coordinates.split(",").map(&:to_i)
+
+        if coordinates == []
+            puts "Coordinates are blank."
+            cord_check = false
+        elsif coordinates.length != 2
+            puts "Entry invalid. Please enter coordinates with format \"X, Y\"."
+            cord_check = false
+        elsif coordinates == [0,0]
+            puts "Coordinates start from 1"
+        elsif coordinates[0] >= $grid_width-2 || coordinates[1] >= $grid_height-2
+            puts "Coordinates outside of range. Please enter coordinates lower than the following:"
+            puts "X coordinate: #{$grid_width-2}"
+            puts "Y coordinate: #{$grid_height-2}"
+        else
+            cord_check = true
+        end
+
+        x_cord, y_cord = coordinates
+        x_cord -= 1
+        y_cord -= 1
+
+        puts "Coordinates: #{coordinates}"
+
+        if orientation == "H"
+            word_fit = $grid_width - x_cord - word.length
+        elsif orientation == "V"
+            word_fit = $grid_height - y_cord - word.length
+        else
+            h_length_check = $grid_width - x_cord - word.length
+            v_length_check = $grid_height - y_cord - word.length
+            
+            if h_length_check < 0 || v_length_check < 0
+                word_fit = -1
+            elsif h_length_check < v_length_check
+                word_fit = h_length_check
+            else
+                word_fit = v_length_check
+            end
+        end
+        
+        if word_fit < 0
+            puts "\"#{word}\" won't fit here"
+            length_check = false
+        else 
+            length_check = true
+        end
+    end
+end
+
+print_grid(real_grid)
+insert_word(max_length)
+print_grid(real_grid)
+
+make_grid.each { |x| puts "#{x}"}
